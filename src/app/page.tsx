@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { VariableSizeList as List } from 'react-window'
 import JSZip from 'jszip'
+import Image from 'next/image'
 
 interface Message {
   date: string
@@ -88,7 +89,7 @@ const generateThumbnail = async (
   maxHeight: number = 200
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const img = new Image()
+    const img = new window.Image()
     const url = URL.createObjectURL(blob)
 
     img.onload = () => {
@@ -143,9 +144,7 @@ const generateThumbnail = async (
 }
 
 // Generate video thumbnail
-const generateVideoThumbnail = async (
-  blob: Blob
-): Promise<string> => {
+const generateVideoThumbnail = async (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video')
     const url = URL.createObjectURL(blob)
@@ -600,9 +599,7 @@ export default function Home() {
       )
     }
     if (mediaFilter === 'videos') {
-      return mediaMessages.filter(
-        (msg) => msg.attachment?.type === 'video'
-      )
+      return mediaMessages.filter((msg) => msg.attachment?.type === 'video')
     }
     if (mediaFilter === 'documents') {
       return mediaMessages.filter(
@@ -641,10 +638,7 @@ export default function Home() {
     }
   }, [imageModal])
 
-  const renderAttachment = (
-    attachment: Attachment,
-    onLoad: () => void
-  ) => {
+  const renderAttachment = (attachment: Attachment, onLoad: () => void) => {
     switch (attachment.type) {
       case 'image':
         return (
@@ -929,7 +923,15 @@ export default function Home() {
         <div className="sidebar-content">
           {savedChats.length === 0 ? (
             <div className="empty-sidebar">
-              <div className="empty-icon" />
+              <div className="empty-icon">
+                <Image
+                  src="/eepy.jpg"
+                  alt="No chats"
+                  width={120}
+                  height={120}
+                  priority
+                />
+              </div>
               <p className="empty-title">No saved chats yet</p>
               <p className="empty-subtitle">
                 Upload a WhatsApp export to get started
@@ -958,14 +960,11 @@ export default function Home() {
                         : 'participants'}
                     </div>
                     <div className="chat-date">
-                      {new Date(chat.timestamp).toLocaleDateString(
-                        'en-US',
-                        {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        }
-                      )}
+                      {new Date(chat.timestamp).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </div>
                   </div>
                   <button
@@ -986,7 +985,14 @@ export default function Home() {
         {isEmptyState ? (
           <div className="empty-state">
             <div className="empty-hero">
-              <div className="hero-icon" />
+              <Image
+              src="/eepy.jpg"
+              alt="WhatsApp Chat Viewer"
+              width={200}
+              height={200}
+              style={{ borderRadius: '50%' }}
+              priority
+              />
               <h1>WhatsApp Chat Viewer</h1>
               <p>Import and view your exported WhatsApp chats</p>
             </div>
@@ -1006,7 +1012,15 @@ export default function Home() {
                 disabled={loading}
                 style={{ display: 'none' }}
               />
-              <div className="upload-icon" />
+              <div className="upload-icon">
+                <Image
+                  src="/white.jpg"
+                  alt="Upload"
+                  width={80}
+                  height={80}
+                  priority
+                />
+              </div>
               <h2>Drop your WhatsApp export here</h2>
               <p>or click to browse for a ZIP file</p>
             </label>
@@ -1147,9 +1161,7 @@ export default function Home() {
                         All ({getMediaMessages().length})
                       </button>
                       <button
-                        className={
-                          mediaFilter === 'images' ? 'active' : ''
-                        }
+                        className={mediaFilter === 'images' ? 'active' : ''}
                         onClick={() => setMediaFilter('images')}
                       >
                         Images (
@@ -1163,9 +1175,7 @@ export default function Home() {
                         )
                       </button>
                       <button
-                        className={
-                          mediaFilter === 'videos' ? 'active' : ''
-                        }
+                        className={mediaFilter === 'videos' ? 'active' : ''}
                         onClick={() => setMediaFilter('videos')}
                       >
                         Videos (
