@@ -82,10 +82,7 @@ const deleteChat = async (id: string): Promise<void> => {
 
 // Extract chat name from ZIP file name
 const extractChatName = (fileName: string): string => {
-  // Remove .zip extension
   const nameWithoutExt = fileName.replace(/\.zip$/i, '')
-  
-  // Try to match "WhatsApp Chat - [Chat Name]" or "WhatsApp Chat with [Chat Name]"
   const patterns = [
     /WhatsApp Chat - (.+)/i,
     /WhatsApp Chat with (.+)/i,
@@ -99,14 +96,13 @@ const extractChatName = (fileName: string): string => {
     }
   }
   
-  // If no pattern matches, return the full name without extension
   return nameWithoutExt.trim()
 }
 
 export default function Home() {
-  const [containerHeight, setContainerHeight] = useState(600)
   const [allMessages, setAllMessages] = useState<Message[]>([])
   const [currentUser, setCurrentUser] = useState<string>('')
+  const [savedUsername, setSavedUsername] = useState<string>('')
   const [allSenders, setAllSenders] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
@@ -116,11 +112,36 @@ export default function Home() {
   const [savedChats, setSavedChats] = useState<SavedChat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string>('')
   const [currentChatName, setCurrentChatName] = useState<string>('')
+  const [showUsernameModal, setShowUsernameModal] = useState(false)
+  const [tempUsername, setTempUsername] = useState('')
+  const [showMediaPanel, setShowMediaPanel] = useState(false)
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos' | 'documents'>('all')
+  const [imageModal, setImageModal] = useState<{ src: string; name: string } | null>(null)
+  const [containerHeight, setContainerHeight] = useState(600)
+  
   const listRef = useRef<List>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
   const blobUrls = useRef<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const rowHeights = useRef<{ [key: number]: number }>({})
+  const containerRef = useRef<HTMLDivElement>(null)
+ // console.log(savedUsername)
+
+  useEffect(() => {
+    loadSavedChats()
+    
+    // Check for saved username
+    const saved = localStorage.getItem('whatsapp-viewer-username')
+    if (saved) {
+      setSavedUsername(saved)
+    } else {
+      setShowUsernameModal(true)
+    }
+    
+    return () => {
+      blobUrls.current.forEach(url => URL.revokeObjectURL(url))
+    }
+  }, [])
+
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
@@ -133,12 +154,6 @@ export default function Home() {
     window.addEventListener('resize', updateHeight)
     return () => window.removeEventListener('resize', updateHeight)
   }, [allMessages.length])
-  useEffect(() => {
-    loadSavedChats()
-    return () => {
-      blobUrls.current.forEach(url => URL.revokeObjectURL(url))
-    }
-  }, [])
 
   const loadSavedChats = async () => {
     try {
@@ -146,6 +161,14 @@ export default function Home() {
       setSavedChats(chats.sort((a, b) => b.timestamp - a.timestamp))
     } catch (error) {
       console.error('Error loading saved chats:', error)
+    }
+  }
+
+  const handleSaveUsername = () => {
+    if (tempUsername.trim()) {
+      localStorage.setItem('whatsapp-viewer-username', tempUsername.trim())
+      setSavedUsername(tempUsername.trim())
+      setShowUsernameModal(false)
     }
   }
 
@@ -269,15 +292,18 @@ export default function Home() {
       setAllMessages(parsed)
       rowHeights.current = {}
 
-      const senders = [...new Set(parsed.map(m => m.sender))]
+      const senders = [...new Set(parsed.map(m => m.sender.trim()))]
       setAllSenders(senders)
-      setCurrentUser('')
 
-      // Save to IndexedDB if it's a new upload
+      // Auto-select user if they exist in chat
+      if (savedUsername && senders.includes(savedUsername)) {
+        setCurrentUser(savedUsername)
+      } else {
+        setCurrentUser('')
+      }
+
       if (!chatId) {
         const newChatId = Date.now().toString()
-        
-        // Extract chat name from file name or use provided name
         const extractedName = chatName || extractChatName(fileName)
         
         const savedChat: SavedChat = {
@@ -317,6 +343,20 @@ export default function Home() {
     await processZipFile(file, file.name)
   }
 
+  const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.name.endsWith('.zip')) {
+      await processZipFile(file, file.name)
+    } else {
+      alert('Please drop a valid ZIP file')
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+  }
+
   const loadSavedChat = async (chat: SavedChat) => {
     await processZipFile(chat.zipBlob, chat.name, chat.id, chat.name)
   }
@@ -328,15 +368,27 @@ export default function Home() {
         await deleteChat(chatId)
         await loadSavedChats()
         if (currentChatId === chatId) {
-          setAllMessages([])
-          setCurrentChatId('')
-          setCurrentChatName('')
+          handleBackToHome()
         }
       } catch (error) {
         console.error('Error deleting chat:', error)
         alert('Failed to delete chat')
       }
     }
+  }
+
+  const handleBackToHome = () => {
+    setAllMessages([])
+    setCurrentChatId('')
+    setCurrentChatName('')
+    setCurrentUser('')
+    setAllSenders([])
+    setSearchTerm('')
+    setSearchResults([])
+    setCurrentSearchIndex(-1)
+    setShowMediaPanel(false)
+    blobUrls.current.forEach(url => URL.revokeObjectURL(url))
+    blobUrls.current = []
   }
 
   const performSearch = () => {
@@ -394,6 +446,58 @@ export default function Home() {
       listRef.current?.resetAfterIndex(index)
     }
   }, [])
+
+  const getMediaMessages = () => {
+    return allMessages.filter(msg => msg.attachment)
+  }
+
+  const getFilteredMedia = () => {
+    const mediaMessages = getMediaMessages()
+    if (mediaFilter === 'all') return mediaMessages
+    if (mediaFilter === 'images') {
+      return mediaMessages.filter(msg => 
+        msg.attachment?.type === 'image' || msg.attachment?.type === 'sticker'
+      )
+    }
+    if (mediaFilter === 'videos') {
+      return mediaMessages.filter(msg => msg.attachment?.type === 'video')
+    }
+    if (mediaFilter === 'documents') {
+      return mediaMessages.filter(msg => 
+        msg.attachment?.type === 'document' || msg.attachment?.type === 'audio'
+      )
+    }
+    return mediaMessages
+  }
+
+  const handleImageClick = (src: string, name: string) => {
+    setImageModal({ src, name })
+  }
+
+  const handleDocumentDownload = (attachment: Attachment) => {
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a')
+    link.href = attachment.blobUrl
+    link.download = attachment.name
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && imageModal) {
+        setImageModal(null)
+      }
+    }
+    
+    if (imageModal) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [imageModal])
 
   const renderAttachment = (attachment: Attachment, onLoad: () => void) => {
     switch (attachment.type) {
@@ -474,7 +578,7 @@ export default function Home() {
       useEffect(() => {
         if (rowRef.current) {
           const height = rowRef.current.getBoundingClientRect().height
-          setRowHeight(index, height + 16) // +16 for padding
+          setRowHeight(index, height + 16)
         }
       }, [])
 
@@ -521,6 +625,34 @@ export default function Home() {
 
   return (
     <div className={`app-wrapper ${darkMode ? 'dark-mode' : ''}`}>
+      {/* Username Modal */}
+      {showUsernameModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Welcome to WhatsApp Chat Viewer</h2>
+            <p>Please enter your name to personalize your experience:</p>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={tempUsername}
+              onChange={(e) => setTempUsername(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveUsername()}
+              className="username-input"
+              autoFocus
+            />
+            <button onClick={handleSaveUsername} className="save-username-btn">
+              Continue
+            </button>
+            <button 
+              onClick={() => setShowUsernameModal(false)} 
+              className="skip-btn"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      )}
+
       <aside className="sidebar">
         <div className="sidebar-header">
           <h2>Chats</h2>
@@ -601,7 +733,12 @@ export default function Home() {
               <p>Import and view your exported WhatsApp chats</p>
             </div>
 
-            <label className="dropzone" htmlFor="file-upload">
+            <label 
+              className="dropzone" 
+              htmlFor="file-upload"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+            >
               <input
                 id="file-upload"
                 ref={fileInputRef}
@@ -634,9 +771,23 @@ export default function Home() {
           <>
             <div className="chat-header">
               <div className="chat-info">
+                <button onClick={handleBackToHome} className="back-btn">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
+                  </svg>
+                </button>
                 <h2>{currentChatName || 'Chat Messages'}</h2>
               </div>
               <div className="header-controls">
+                <button 
+                  onClick={() => setShowMediaPanel(!showMediaPanel)} 
+                  className="media-btn"
+                  title="View media"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="currentColor"/>
+                  </svg>
+                </button>
                 <div className="search-container">
                   <input
                     type="text"
@@ -690,21 +841,135 @@ export default function Home() {
               </div>
             )}
 
-      <div className="messages-container" ref={containerRef}>
-        <List
-          ref={listRef}
-          height={containerHeight}
-          itemCount={allMessages.length}
-          itemSize={getRowHeight}
-          width="100%"
-          overscanCount={5}
-        >
-          {MessageRow}
-        </List>
-      </div>
+            <div className="chat-container">
+              {!showMediaPanel ? (
+                <div className="messages-container" ref={containerRef}>
+                  <List
+                    ref={listRef}
+                    height={containerHeight}
+                    itemCount={allMessages.length}
+                    itemSize={getRowHeight}
+                    width="100%"
+                    overscanCount={5}
+                  >
+                    {MessageRow}
+                  </List>
+                </div>
+              ) : (
+                <div className="media-panel">
+                  <div className="media-header">
+                    <h3>Media, Links and Docs</h3>
+                    <div className="media-filters">
+                      <button 
+                        className={mediaFilter === 'all' ? 'active' : ''}
+                        onClick={() => setMediaFilter('all')}
+                      >
+                        All ({getMediaMessages().length})
+                      </button>
+                      <button 
+                        className={mediaFilter === 'images' ? 'active' : ''}
+                        onClick={() => setMediaFilter('images')}
+                      >
+                        Images ({getMediaMessages().filter(m => 
+                          m.attachment?.type === 'image' || m.attachment?.type === 'sticker'
+                        ).length})
+                      </button>
+                      <button 
+                        className={mediaFilter === 'videos' ? 'active' : ''}
+                        onClick={() => setMediaFilter('videos')}
+                      >
+                        Videos ({getMediaMessages().filter(m => 
+                          m.attachment?.type === 'video'
+                        ).length})
+                      </button>
+                      <button 
+                        className={mediaFilter === 'documents' ? 'active' : ''}
+                        onClick={() => setMediaFilter('documents')}
+                      >
+                        Docs ({getMediaMessages().filter(m => 
+                          m.attachment?.type === 'document' || m.attachment?.type === 'audio'
+                        ).length})
+                      </button>
+                    </div>
+                  </div>
+                  <div className="media-grid">
+                    {getFilteredMedia().map((msg, idx) => (
+                      <div key={idx} className="media-item">
+                        {msg.attachment?.type === 'image' || msg.attachment?.type === 'sticker' ? (
+                          <div 
+                            className="media-image-container"
+                            onClick={() => handleImageClick(msg.attachment!.blobUrl, msg.attachment!.name)}
+                          >
+                            <img 
+                              src={msg.attachment.blobUrl} 
+                              alt={msg.attachment.name}
+                              loading="lazy"
+                              className="media-thumbnail"
+                            />
+                            <div className="image-overlay">
+                              <div className="zoom-icon">🔍</div>
+                            </div>
+                          </div>
+                        ) : msg.attachment?.type === 'video' ? (
+                          <video src={msg.attachment.blobUrl} controls />
+                        ) : (
+                          <div 
+                            className="media-doc"
+                            onClick={() => msg.attachment && handleDocumentDownload(msg.attachment)}
+                          >
+                            <div className="doc-icon">📄</div>
+                            <div className="doc-name">{msg.attachment?.name}</div>
+                            <div className="doc-download-btn">
+                              Click to Download
+                            </div>
+                          </div>
+                        )}
+                        <div className="media-info">
+                          <span className="media-sender">{msg.sender}</span>
+                          <span className="media-date">{msg.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
       </main>
+      
+      {/* Image Modal */}
+      {imageModal && (
+        <div className="image-modal-overlay" onClick={() => setImageModal(null)}>
+          <div className="image-modal" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="modal-close"
+              onClick={() => setImageModal(null)}
+            >
+              ✕
+            </button>
+            <img 
+              src={imageModal.src} 
+              alt={imageModal.name}
+              className="modal-image"
+            />
+            <div className="modal-info">
+              <span className="modal-filename">{imageModal.name}</span>
+              <button 
+                className="modal-download"
+                onClick={() => {
+                  const link = document.createElement('a')
+                  link.href = imageModal.src
+                  link.download = imageModal.name
+                  link.click()
+                }}
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

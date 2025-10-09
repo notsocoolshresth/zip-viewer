@@ -924,3 +924,507 @@ video[preload="metadata"] {
     page-break-inside: avoid;
   }
 }
+
+/* Add to your existing CSS */
+
+/* Username Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #202c33;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.modal h2 {
+  color: #e9edef;
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+.modal p {
+  color: #8696a0;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.username-input {
+  width: 100%;
+  padding: 12px;
+  background: #111b21;
+  border: 1px solid #2a3942;
+  border-radius: 8px;
+  color: #e9edef;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.username-input:focus {
+  outline: none;
+  border-color: #00a884;
+}
+
+.save-username-btn {
+  width: 100%;
+  padding: 12px;
+  background: #00a884;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.2s;
+}
+
+.save-username-btn:hover {
+  background: #06cf9c;
+}
+
+.skip-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #8696a0;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.skip-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Back Button */
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: #e9edef;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chat-info {
+  display: flex;
+  align-items: center;
+}
+
+/* Media Button */
+.media-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #2a3942;
+  color: #e9edef;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.media-btn:hover {
+  background: #374850;
+}
+
+/* Chat Container */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Media Panel */
+.media-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0b141a;
+  overflow: hidden;
+}
+
+.media-header {
+  padding: 16px 20px;
+  background: #111b21;
+  border-bottom: 1px solid #2a3942;
+}
+
+.media-header h3 {
+  color: #e9edef;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.media-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.media-filters button {
+  padding: 8px 16px;
+  background: #202c33;
+  border: 1px solid #2a3942;
+  color: #8696a0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.media-filters button:hover {
+  background: #2a3942;
+}
+
+.media-filters button.active {
+  background: #00a884;
+  color: white;
+  border-color: #00a884;
+}
+
+.media-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+.media-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.media-grid::-webkit-scrollbar-thumb {
+  background: #374850;
+  border-radius: 3px;
+}
+
+.media-item {
+  background: #111b21;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #2a3942;
+  transition: transform 0.2s;
+}
+
+.media-item:hover {
+  transform: scale(1.02);
+}
+
+.media-item img,
+.media-item video {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.media-doc {
+  padding: 24px;
+  text-align: center;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.doc-icon {
+  font-size: 48px;
+}
+
+.doc-name {
+  color: #e9edef;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.media-doc a {
+  padding: 6px 12px;
+  background: #00a884;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+
+.media-doc a:hover {
+  background: #06cf9c;
+}
+
+.media-info {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #202c33;
+}
+
+.media-sender {
+  color: #00a884;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.media-date {
+  color: #8696a0;
+  font-size: 11px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .media-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .media-item img,
+  .media-item video {
+    height: 150px;
+  }
+
+  .media-filters {
+    flex-wrap: wrap;
+  }
+}
+
+/* ===== Enhanced Media Panel Styles ===== */
+
+/* Image container with hover effects */
+.media-image-container {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.media-thumbnail {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.media-image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.media-image-container:hover .media-thumbnail {
+  transform: scale(1.05);
+  filter: brightness(0.8);
+}
+
+.zoom-icon {
+  font-size: 24px;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced document styling */
+.media-doc {
+  padding: 24px;
+  text-align: center;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.media-doc:hover {
+  background: #1a252d;
+}
+
+.doc-download-btn {
+  padding: 8px 16px;
+  background: #00a884;
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.media-doc:hover .doc-download-btn {
+  background: #06cf9c;
+}
+
+/* Image Modal Styles */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.image-modal {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background: #111b21;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: scaleIn 0.3s ease;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: calc(90vh - 80px);
+  width: auto;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.modal-info {
+  padding: 16px 20px;
+  background: #202c33;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal-filename {
+  color: #e9edef;
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  word-break: break-all;
+}
+
+.modal-download {
+  padding: 8px 16px;
+  background: #00a884;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.modal-download:hover {
+  background: #06cf9c;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Mobile optimizations for modal */
+@media (max-width: 768px) {
+  .image-modal {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .modal-info {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .modal-filename {
+    text-align: center;
+  }
+}
