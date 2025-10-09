@@ -993,7 +993,7 @@ video[preload='metadata'] {
   background: #111b21;
   border-radius: 8px;
   border: 1px solid #2a3942;
-  overflow: hidden;
+
   transition: transform 0.2s;
 }
 
