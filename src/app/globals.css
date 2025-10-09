@@ -1114,7 +1114,6 @@ video[preload="metadata"] {
 
 .media-grid {
   flex: 1;
-  overflow-y: auto;
   padding: 16px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
