@@ -68,7 +68,7 @@ This application allows you to import WhatsApp chat exports (ZIP files) and view
 git clone https://github.com/notsocoolshresth/zip-viewer
 
 # Navigate to project directory
-cd whatsapp-viewer-simple
+cd zip-viewer
 
 # Install dependencies
 npm install
